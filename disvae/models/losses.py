@@ -442,7 +442,7 @@ def _reconstruction_loss(data, recon_data, distribution="bernoulli", storer=None
         descriptor = VGG19().to(device)
         data_features = [_data.to(device) for _data in descriptor(data)] 
         recon_features = [_data.to(device) for _data in descriptor(recon_data)] 
-        for f, target in zip(recon_features, targets):
+        for f, target in zip(recon_features, data_features):
             loss += F.mse_loss(f * 255, target * 255, reduction="sum") / 255
 
         

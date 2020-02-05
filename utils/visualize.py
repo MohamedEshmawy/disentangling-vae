@@ -370,7 +370,7 @@ class Visualizer():
 
 
 class GifTraversalsTraining:
-    """Creates a Gif of traversals by generating an image at every training epoch.
+    """Creates a Gif of traversals by generating an image at every certain number of training epochs.
 
     Parameters
     ----------
@@ -393,7 +393,10 @@ class GifTraversalsTraining:
     n_latents : int, optional
         The number of latent dimensions to display. I.e. number of rows. If `None`
         uses all latents.
-
+    
+    visualize_every : int, optional
+        The number of epochs that should pass before visualizaing a traversal
+    
     kwargs:
         Additional arguments to `Visualizer`
     """
@@ -402,6 +405,7 @@ class GifTraversalsTraining:
                  is_reorder_latents=False,
                  n_per_latent=10,
                  n_latents=None,
+                 visualize_every=1,
                  **kwargs):
         self.save_filename = os.path.join(model_dir, GIF_FILE)
         self.visualizer = Visualizer(model, dataset, model_dir,
@@ -411,8 +415,14 @@ class GifTraversalsTraining:
         self.is_reorder_latents = is_reorder_latents
         self.n_per_latent = n_per_latent
         self.n_latents = n_latents if n_latents is not None else model.latent_dim
+        self.visualize_every = visualize_every
+        self.current_epoch=0
 
     def __call__(self):
+        self.current_epoch +=1
+        if self.current_epoch % self.visualize_every!=0:
+            return
+            
         """Generate the next gif image. Should be called after each epoch."""
         cached_training = self.visualizer.model.training
         self.visualizer.model.eval()

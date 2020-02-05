@@ -12,10 +12,11 @@ from torch import optim
 from .discriminator import Discriminator
 from disvae.utils.math import (log_density_gaussian, log_importance_weight_matrix,
                                matrix_log_density_gaussian)
-
+from utils.helpers import (create_safe_directory, get_device, set_seed, get_n_param,get_config_section, update_namespace_, FormatterNoDuplicate)
+from .vgg19 import VGG19
 
 LOSSES = ["VAE", "betaH", "betaB", "factor", "btcvae"]
-RECON_DIST = ["bernoulli", "laplace", "gaussian"]
+RECON_DIST = ["bernoulli", "laplace", "gaussian", "dfc_vae"]
 
 
 # TO-DO: clean n_data and device
@@ -435,6 +436,16 @@ def _reconstruction_loss(data, recon_data, distribution="bernoulli", storer=None
         loss = F.l1_loss(recon_data, data, reduction="sum")
         loss = loss * 3  # emperical value to give similar values than bernoulli => use same hyperparam
         loss = loss * (loss != 0)  # masking to avoid nan
+    elif distribution == "dfc_vae":
+        loss = 0
+        device = get_device(is_gpu= data.is_cuda)
+        descriptor = VGG19().to(device)
+        data_features = [_data.to(device) for _data in descriptor(data)] 
+        recon_features = [_data.to(device) for _data in descriptor(recon_data)] 
+        for f, target in zip(recon_features, targets):
+            loss += F.mse_loss(f * 255, target * 255, reduction="sum") / 255
+
+        
     else:
         assert distribution not in RECON_DIST
         raise ValueError("Unkown distribution: {}".format(distribution))

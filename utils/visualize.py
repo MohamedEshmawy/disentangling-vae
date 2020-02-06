@@ -425,7 +425,7 @@ class GifTraversalsTraining:
 
     def __call__(self):
         self.current_epoch +=1
-        if self.current_epoch % self.save_every==0:
+        if self.current_epoch % self.save_every==0 and self.images != []:
             imageio.mimsave(self.save_filename, self.images, fps=FPS_GIF)
         if self.current_epoch % self.visualize_every!=0:
             return

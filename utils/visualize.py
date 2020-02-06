@@ -432,8 +432,7 @@ class GifTraversalsTraining:
         self.current_epoch +=1
         if self.current_epoch % self.save_every==0 and self.images != []:
             if self.no_gif == True:
-                imageio.mimsave(self.save_filename, self.images[-1], fps=FPS_GIF)
-                self.images = []
+                save_image(self.images[-1])
             else:
                 imageio.mimsave(self.save_filename, self.images, fps=FPS_GIF)
                 

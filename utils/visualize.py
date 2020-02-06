@@ -399,6 +399,9 @@ class GifTraversalsTraining:
         
     save_every : int, optional
         The number of epochs that should pass before saving the gif
+        
+    no_gif : bool, optional
+        save the last generated images instead of gifs 
     
     kwargs:
         Additional arguments to `Visualizer`
@@ -410,6 +413,7 @@ class GifTraversalsTraining:
                  n_latents=None,
                  visualize_every=1,
                  save_every=1,
+                 no_gif = False,
                  **kwargs):
         self.save_filename = os.path.join(model_dir, GIF_FILE)
         self.visualizer = Visualizer(model, dataset, model_dir,
@@ -422,11 +426,17 @@ class GifTraversalsTraining:
         self.visualize_every = visualize_every
         self.current_epoch=0
         self.save_every = save_every
-
+        self.no_gif = False
+        
     def __call__(self):
         self.current_epoch +=1
         if self.current_epoch % self.save_every==0 and self.images != []:
-            imageio.mimsave(self.save_filename, self.images, fps=FPS_GIF)
+            if self.no_gif == True:
+                imageio.mimsave(self.save_filename, self.images[-1], fps=FPS_GIF)
+                self.images = []
+            else:
+                imageio.mimsave(self.save_filename, self.images, fps=FPS_GIF)
+                
         if self.current_epoch % self.visualize_every!=0:
             return
 
@@ -446,7 +456,8 @@ class GifTraversalsTraining:
 
     def save_reset(self):
         """Saves the GIF and resets the list of images. Call at the end of training."""
-        imageio.mimsave(self.save_filename, self.images, fps=FPS_GIF)
-        self.images = []
+        if self.images != []:
+            imageio.mimsave(self.save_filename, self.images, fps=FPS_GIF)
+            self.images = []
         
         

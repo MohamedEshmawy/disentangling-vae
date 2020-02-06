@@ -395,7 +395,10 @@ class GifTraversalsTraining:
         uses all latents.
     
     visualize_every : int, optional
-        The number of epochs that should pass before visualizaing a traversal
+        The number of epochs that should pass before generating a traversal
+        
+    save_every : int, optional
+        The number of epochs that should pass before saving the gif
     
     kwargs:
         Additional arguments to `Visualizer`
@@ -406,6 +409,7 @@ class GifTraversalsTraining:
                  n_per_latent=10,
                  n_latents=None,
                  visualize_every=1,
+                 save_every=1,
                  **kwargs):
         self.save_filename = os.path.join(model_dir, GIF_FILE)
         self.visualizer = Visualizer(model, dataset, model_dir,
@@ -417,11 +421,15 @@ class GifTraversalsTraining:
         self.n_latents = n_latents if n_latents is not None else model.latent_dim
         self.visualize_every = visualize_every
         self.current_epoch=0
+        self.save_every = save_every
 
     def __call__(self):
         self.current_epoch +=1
+        if self.current_traversal % self.save_every==0:
+            imageio.mimsave(self.save_filename, self.images, fps=FPS_GIF)
         if self.current_epoch % self.visualize_every!=0:
             return
+
             
         """Generate the next gif image. Should be called after each epoch."""
         cached_training = self.visualizer.model.training
@@ -433,8 +441,12 @@ class GifTraversalsTraining:
         self.images.append(img_grid)
         if cached_training:
             self.visualizer.model.train()
+        
+
 
     def save_reset(self):
         """Saves the GIF and resets the list of images. Call at the end of training."""
         imageio.mimsave(self.save_filename, self.images, fps=FPS_GIF)
         self.images = []
+        
+        
